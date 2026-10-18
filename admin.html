@@ -1,0 +1,343 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<meta name="robots" content="noindex">
+<title>Admin | Article 51A(h)</title>
+<style>
+:root{--navy:#14304f;--navy-d:#0d2240;--ink:#1c2430;--mute:#5d6877;--line:#d6dce5;--bg:#f3f5f8;--red:#8c2f39;--gold:#a67c1f;--wa:#25a244;color-scheme:light}
+*{box-sizing:border-box}
+body{margin:0;background:var(--bg);color:var(--ink);font:16px/1.5 system-ui,-apple-system,"Segoe UI",Roboto,sans-serif}
+main{max-width:720px;margin:0 auto;padding:calc(1rem + env(safe-area-inset-top,0px)) 1rem 3rem}
+button,input,select,textarea{font:inherit;color:inherit}
+:focus-visible{outline:3px solid var(--gold);outline-offset:2px}
+.serif,h1,h2{font-family:"Iowan Old Style","Palatino Linotype",Palatino,Georgia,serif}
+.brand h1{margin:0 0 1rem;font-size:1.6rem;color:var(--navy)}
+.panel{background:#fff;border:1px solid var(--line);border-radius:4px;padding:1rem;margin-bottom:1.2rem}
+.panel h2{margin:0 0 .4rem;font-size:1.25rem}
+label{display:block;font-size:.85rem;color:var(--mute);margin:.8rem 0 .2rem}
+label.chk{display:flex;gap:.5rem;align-items:center;color:var(--ink);font-size:.95rem}
+label.chk input{width:auto;accent-color:var(--navy)}
+input,select,textarea{width:100%;background:#fff;border:1px solid #b9c2cf;border-radius:4px;padding:.55rem .65rem}
+textarea{min-height:110px}
+.two{display:grid;grid-template-columns:1fr 1fr;gap:.6rem}
+@media(max-width:520px){.two{grid-template-columns:1fr}}
+.btn{display:inline-block;border:1px solid var(--navy);background:#fff;color:var(--navy);padding:.5rem .9rem;border-radius:4px;font-weight:600;font-size:.92rem;cursor:pointer;text-decoration:none}
+.btn.pri{background:var(--navy);color:#fff}
+.btn.wa{background:var(--wa);border-color:var(--wa);color:#fff}
+.btn.del{color:var(--red);border-color:var(--red)}
+.btn[disabled]{opacity:.55;cursor:wait}
+.act{display:flex;gap:.5rem;flex-wrap:wrap;margin-top:.9rem}
+.bar{display:flex;justify-content:space-between;align-items:center;margin-bottom:1rem}
+.bar a{color:var(--navy)}
+.err{color:var(--red);font-size:.9rem;min-height:1.2em;margin:.5rem 0 0}
+.ok{color:var(--wa)}
+.warnbox{background:#fbf3df;border:1px solid var(--gold);border-radius:4px;padding:.6rem .8rem;font-size:.9rem;margin:.8rem 0 0}
+.poster{display:flex;gap:.8rem;align-items:flex-start}
+.poster img{width:110px;aspect-ratio:4/5;object-fit:cover;border:1px solid var(--line);border-radius:4px;background:#e3e8ef}
+.poster img[hidden]{display:none}
+.poster div{flex:1;min-width:0}
+.card{display:flex;gap:.8rem;background:#fff;border:1px solid var(--line);border-radius:4px;padding:.7rem;margin-bottom:.7rem}
+.card img{width:72px;height:90px;object-fit:cover;border-radius:3px;background:#e3e8ef;flex:none}
+.card .body{flex:1;min-width:0}
+.card h2{font-size:1.02rem;line-height:1.3;margin:.3rem 0 0}
+.b{display:inline-block;font-size:.72rem;font-weight:700;padding:.05rem .45rem;border-radius:3px;background:#e7ecf3;color:var(--navy);margin-right:.3rem}
+.b.pend{background:var(--gold);color:#1a1405}
+.card .act{margin-top:.5rem}.card .btn{padding:.3rem .6rem;font-size:.82rem}
+.empty{color:var(--mute);text-align:center;padding:2rem 0}
+</style>
+</head>
+<body>
+<main>
+<header class="brand"><h1>Article 51A(h) admin</h1></header>
+
+<section class="panel" id="login">
+  <label for="em">Email</label><input id="em" type="email" autocomplete="username">
+  <label for="pw">Password</label><input id="pw" type="password" autocomplete="current-password">
+  <p class="err" id="lerr"></p>
+  <button class="btn pri" id="in">Log in</button>
+</section>
+
+<div id="app" style="display:none">
+  <div class="bar"><a href="index.html">View site</a><button class="btn" id="out">Log out</button></div>
+
+  <section class="panel">
+    <h2 id="ftitle">New post</h2>
+
+    <label for="file">Poster image</label>
+    <div class="poster">
+      <img id="prev" alt="Poster preview" hidden>
+      <div><input id="file" type="file" accept="image/*"></div>
+    </div>
+
+    <label for="info">Paste the message here</label>
+    <textarea id="info" placeholder="Paste the WhatsApp message. Type, title, deadline and link fill in automatically."></textarea>
+    <div class="act"><button class="btn" id="ai">Read poster and message with AI (optional)</button></div>
+    <p class="warnbox" id="dup" hidden></p>
+
+    <label for="cat">Type</label><select id="cat"></select>
+    <label for="title">Title (name – ACRONYM YEAR)</label><input id="title">
+    <label for="url">Official link</label><input id="url" type="url" placeholder="https://">
+    <div class="two">
+      <div><label for="dl">Deadline</label><input id="dl" type="date"></div>
+      <div><label for="dates">Event dates</label><input id="dates" placeholder="12–14 Mar 2026"></div>
+    </div>
+    <div class="two">
+      <div><label for="loc">Location</label><input id="loc" placeholder="City, Country or Online"></div>
+      <div><label for="topic">Topic</label><select id="topic"></select></div>
+    </div>
+    <label for="cap">Short caption (one sentence)</label><textarea id="cap" style="min-height:70px"></textarea>
+    <label class="chk"><input type="checkbox" id="pub" checked> Publish on the site</label>
+    <label class="chk"><input type="checkbox" id="det"> Include the caption in the channel post</label>
+    <p class="err" id="ferr"></p>
+    <div class="act">
+      <button class="btn pri" id="save">Save post</button>
+      <button class="btn wa" id="chan">Copy channel post</button>
+      <button class="btn" id="cancel" style="display:none">Cancel edit</button>
+    </div>
+  </section>
+
+  <h2 class="serif" style="font-size:1.25rem">All posts</h2>
+  <div id="list"></div>
+</div>
+</main>
+
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2.45.4/dist/umd/supabase.js"></script>
+<script>
+const CFG = {
+  URL: "https://wknkdfajfnogagdastex.supabase.co",
+  KEY: "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6IndrbmtkZmFqZm5vZ2FnZGFzdGV4Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3OTIyNTU4ODUsImV4cCI6MjEwNzgzMTg4NX0.coWowRP8woF1e72Ts80dmVhm3BvibAbD1diK3TuCJsE",
+  CHANNEL: "https://whatsapp.com/channel/0029Va5gbXBEawdjYJGqrd38"
+};
+const TYPES = ["Conference","Workshop","Webinar","Symposium","School","Seminar","Discussion","Course","Call for papers"];
+const TOPICS = ["Material Science","Physics","Chemistry","Nanotechnology","Other"];
+const $ = s => document.querySelector(s);
+const sb = supabase.createClient(CFG.URL, CFG.KEY);
+const SITE = location.href.split("#")[0].replace(/admin\.html.*$/, "");
+let posts = [], editId = null, cur = null;
+const touched = new Set();
+const esc = s => String(s || "").replace(/[&<>"]/g, c => ({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;"}[c]));
+const fmt = d => new Date(d + "T12:00").toLocaleDateString("en-GB", { day: "numeric", month: "short", year: "numeric" });
+const imgUrl = p => p ? `${CFG.URL}/storage/v1/object/public/posters/${p}` : "";
+const addDays = (d, n) => new Date(+new Date(d) + n * 864e5).toISOString().slice(0, 10);
+$("#cat").innerHTML = TYPES.map(t => `<option>${t}</option>`).join("");
+$("#topic").innerHTML = TOPICS.map(t => `<option>${t}</option>`).join("");
+
+/* ---------- paste-to-fill ---------- */
+const MON = "jan feb mar apr may jun jul aug sep oct nov dec".split(" ");
+const iso = (y, m, d) => y + "-" + String(m).padStart(2, "0") + "-" + String(d).padStart(2, "0");
+function findDates(t) {
+  const out = [], mp = "(jan|feb|mar|apr|may|jun|jul|aug|sep|oct|nov|dec)[a-z]*\\.?"; let m;
+  const a = new RegExp("(\\d{1,2})(?:st|nd|rd|th)?[\\s-]+" + mp + ",?\\s+(\\d{4})", "gi");
+  while (m = a.exec(t)) out.push({ i: m.index, d: iso(m[3], MON.indexOf(m[2].toLowerCase()) + 1, m[1]) });
+  const b = new RegExp(mp + "\\s+(\\d{1,2})(?:st|nd|rd|th)?,?\\s+(\\d{4})", "gi");
+  while (m = b.exec(t)) out.push({ i: m.index, d: iso(m[3], MON.indexOf(m[1].toLowerCase()) + 1, m[2]) });
+  const c = /(\d{1,2})[\/.-](\d{1,2})[\/.-](\d{4})/g;
+  while (m = c.exec(t)) out.push({ i: m.index, d: iso(m[3], m[2], m[1]) });
+  return out.filter(x => !isNaN(new Date(x.d))).sort((x, y) => x.i - y.i);
+}
+function guessType(t) {
+  t = t.toLowerCase();
+  for (const k of ["workshop","webinar","symposium","seminar","school","discussion","course"]) if (t.includes(k)) return k[0].toUpperCase() + k.slice(1);
+  if (/call for papers|cfp/.test(t)) return "Call for papers";
+  return "Conference";
+}
+function parse(t) {
+  const lines = t.split("\n").map(s => s.replace(/[*_~]/g, "").replace(/^[^A-Za-z0-9]+/, "").trim()).filter(Boolean);
+  const ds = findDates(t);
+  const dl = ds.find(x => /deadline|last date|abstract|register|registration|before|by/i.test(t.slice(Math.max(0, x.i - 60), x.i))) || ds[0];
+  return { cat: guessType(t), title: (lines[0] || "").slice(0, 140), deadline: dl ? dl.d : "", url: (t.match(/https?:\/\/[^\s)>\]]+/) || [])[0] || "" };
+}
+["cat","title","url","dl","dates","loc","topic","cap"].forEach(i => $("#" + i).addEventListener("input", () => { touched.add(i); showDup(); }));
+$("#info").addEventListener("input", () => {
+  if (editId) return;
+  const r = parse($("#info").value);
+  if (!touched.has("cat")) $("#cat").value = r.cat;
+  if (!touched.has("title")) $("#title").value = r.title;
+  if (!touched.has("url")) $("#url").value = r.url;
+  if (!touched.has("dl")) $("#dl").value = r.deadline;
+  showDup();
+});
+
+/* ---------- poster ---------- */
+$("#file").onchange = () => {
+  const f = $("#file").files[0];
+  const p = $("#prev");
+  if (f) { p.src = URL.createObjectURL(f); p.hidden = false; }
+  else if (cur?.image_path) { p.src = imgUrl(cur.image_path); p.hidden = false; }
+  else p.hidden = true;
+};
+function resize(file, max = 1600) {
+  return new Promise((ok, no) => {
+    const im = new Image();
+    im.onload = () => {
+      const k = Math.min(1, max / Math.max(im.width, im.height));
+      const c = document.createElement("canvas");
+      c.width = Math.round(im.width * k); c.height = Math.round(im.height * k);
+      c.getContext("2d").drawImage(im, 0, 0, c.width, c.height);
+      c.toBlob(b => b ? ok(b) : no(new Error("Image error")), "image/jpeg", .85);
+    };
+    im.onerror = () => no(new Error("Cannot read this image"));
+    im.src = URL.createObjectURL(file);
+  });
+}
+const toB64 = blob => new Promise(r => { const f = new FileReader(); f.onload = () => r(f.result.split(",")[1]); f.readAsDataURL(blob); });
+
+/* ---------- AI (optional) ---------- */
+function splitTitle(t) {
+  const m = (t || "").match(new RegExp("^(" + TYPES.join("|") + "):\\s*(.*)$", "i"));
+  return m ? { type: TYPES.find(x => x.toLowerCase() === m[1].toLowerCase()), name: m[2] } : { type: "Conference", name: t || "" };
+}
+$("#ai").onclick = async () => {
+  const text = $("#info").value.trim(), f = $("#file").files[0];
+  if (!text && !f) { $("#ferr").textContent = "Add a poster or paste the message first."; return; }
+  const b = $("#ai"), old = b.textContent; b.textContent = "Reading…"; b.disabled = true; $("#ferr").textContent = "";
+  try {
+    const image = f ? await toB64(await resize(f)) : null;
+    const { data, error } = await sb.functions.invoke("parse-post", { body: { text, image } });
+    if (error || !data || data.error) throw new Error("AI is not set up yet. The basic fill still works.");
+    if (TYPES.includes(data.type)) $("#cat").value = data.type;
+    if (data.title) $("#title").value = data.title;
+    if (data.deadline) $("#dl").value = data.deadline;
+    if (data.link) $("#url").value = data.link;
+    if (data.event_dates) $("#dates").value = data.event_dates;
+    if (data.location) $("#loc").value = data.location;
+    if (TOPICS.includes(data.topic)) $("#topic").value = data.topic;
+    if (data.caption) $("#cap").value = data.caption;
+    showDup();
+  } catch (e) { $("#ferr").textContent = e.message; }
+  b.textContent = old; b.disabled = false;
+};
+
+/* ---------- duplicates ---------- */
+const norm = s => (s || "").toLowerCase().replace(/[^a-z0-9 ]/g, " ").replace(/\s+/g, " ").trim();
+const nurl = u => (u || "").toLowerCase().replace(/^https?:\/\/(www\.)?/, "").replace(/[?#].*$/, "").replace(/\/$/, "");
+function jac(a, b) {
+  const x = new Set(a.split(" ").filter(w => w.length > 2)), y = new Set(b.split(" ").filter(w => w.length > 2));
+  if (!x.size || !y.size) return 0;
+  let n = 0; x.forEach(w => y.has(w) && n++); return n / (x.size + y.size - n);
+}
+function findDup() {
+  const t = norm($("#title").value), u = nurl($("#url").value);
+  return posts.find(p => p.id !== editId && ((u.includes("/") && nurl(p.link) === u) || (t && jac(t, norm(splitTitle(p.title).name)) >= 0.7)));
+}
+function showDup() {
+  const d = findDup(), el = $("#dup");
+  el.hidden = !d;
+  if (d) el.innerHTML = `Possible duplicate: <b>${esc(d.title)}</b> (${d.status}). <button class="btn" data-dupedit="${d.id}">Edit that post instead</button>`;
+}
+$("#dup").onclick = e => { if (e.target.dataset.dupedit) editPost(e.target.dataset.dupedit); };
+
+/* ---------- channel post ---------- */
+function channelText(r, withCap) {
+  return `*${r.title}*` + (r.deadline ? `\nDeadline: ${fmt(r.deadline)}` : "") + (r.link ? `\n${r.link}` : "") +
+    (withCap && r.caption ? `\n\n${r.caption}` : "") + `\n\nAll posts: ${SITE}\nFollow the channel: ${CFG.CHANNEL}`;
+}
+function copy(text, btn) {
+  const done = () => { const o = btn.textContent; btn.textContent = "Copied"; setTimeout(() => btn.textContent = o, 1300); };
+  if (navigator.clipboard) navigator.clipboard.writeText(text).then(done, () => prompt("Copy this:", text));
+  else { const t = document.createElement("textarea"); t.value = text; document.body.appendChild(t); t.select(); document.execCommand("copy"); t.remove(); done(); }
+}
+const formRow = () => ({
+  title: `${$("#cat").value}: ${$("#title").value.trim()}`, caption: $("#cap").value.trim(), link: $("#url").value.trim(),
+  deadline: $("#dl").value, event_dates: $("#dates").value.trim(), location: $("#loc").value.trim(), topic: $("#topic").value
+});
+$("#chan").onclick = e => {
+  if (!$("#title").value.trim()) { $("#ferr").textContent = "Add a title first."; return; }
+  copy(channelText(formRow(), $("#det").checked), e.target);
+};
+
+/* ---------- auth + posts ---------- */
+function view(session) {
+  $("#login").style.display = session ? "none" : "block";
+  $("#app").style.display = session ? "block" : "none";
+  if (session) load();
+}
+async function load() {
+  const { data, error } = await sb.from("posts").select("*").neq("status", "rejected").order("created_at", { ascending: false });
+  if (error) { $("#list").innerHTML = `<p class="empty">${esc(error.message)}</p>`; return; }
+  posts = data;
+  $("#list").innerHTML = posts.length ? posts.map(p => `
+    <article class="card"><img src="${imgUrl(p.image_path)}" alt="" loading="lazy">
+      <div class="body"><span class="b ${p.status === "published" ? "" : "pend"}">${p.status === "published" ? "Published" : "Pending"}</span>
+        ${p.deadline ? `<span class="b">${fmt(p.deadline)}</span>` : ""}
+        <h2 class="serif">${esc(p.title)}</h2>
+        <div class="act">
+          <button class="btn" data-edit="${p.id}">Edit</button>
+          <button class="btn wa" data-chan="${p.id}">Copy channel post</button>
+          <button class="btn" data-tog="${p.id}">${p.status === "published" ? "Unpublish" : "Publish"}</button>
+          <button class="btn del" data-del="${p.id}">Delete</button></div></div></article>`).join("")
+    : `<p class="empty">No posts yet.</p>`;
+  showDup();
+}
+function reset() {
+  editId = null; cur = null; touched.clear();
+  ["title","info","url","dl","dates","loc","cap","file"].forEach(i => $("#" + i).value = "");
+  $("#pub").checked = true; $("#det").checked = false; $("#cat").value = "Conference"; $("#topic").value = TOPICS[0];
+  $("#prev").hidden = true; $("#ftitle").textContent = "New post"; $("#cancel").style.display = "none";
+  $("#ferr").textContent = ""; $("#dup").hidden = true;
+}
+function editPost(id) {
+  const p = posts.find(x => x.id === id); editId = p.id; cur = p;
+  const s = splitTitle(p.title);
+  $("#cat").value = s.type; $("#title").value = s.name; $("#info").value = "";
+  $("#url").value = p.link || ""; $("#dl").value = p.deadline || ""; $("#dates").value = p.event_dates || "";
+  $("#loc").value = p.location || ""; $("#topic").value = TOPICS.includes(p.topic) ? p.topic : "Other";
+  $("#cap").value = p.caption || ""; $("#pub").checked = p.status === "published"; $("#file").value = "";
+  $("#prev").src = imgUrl(p.image_path); $("#prev").hidden = !p.image_path;
+  $("#ftitle").textContent = "Edit post"; $("#cancel").style.display = "inline-block"; $("#dup").hidden = true;
+  scrollTo({ top: 0, behavior: "smooth" });
+}
+
+$("#in").onclick = async () => {
+  $("#lerr").textContent = "";
+  const { error } = await sb.auth.signInWithPassword({ email: $("#em").value.trim(), password: $("#pw").value });
+  if (error) $("#lerr").textContent = "Login failed: " + error.message;
+  else sb.auth.getSession().then(({ data }) => view(data.session));
+};
+$("#out").onclick = async () => { await sb.auth.signOut(); view(null); };
+$("#cancel").onclick = reset;
+
+$("#save").onclick = async () => {
+  const r = formRow(), f = $("#file").files[0], err = $("#ferr");
+  err.textContent = "";
+  if (!$("#title").value.trim()) { err.textContent = "Add a title."; return; }
+  if (!editId && !f) { err.textContent = "Add the poster image."; return; }
+  const d = findDup();
+  if (d && !confirm(`This looks like a duplicate of "${d.title}". Save anyway?`)) return;
+  const btn = $("#save"); btn.disabled = true; btn.textContent = "Saving…";
+  try {
+    const row = { ...r, caption: r.caption || null, link: r.link || null, deadline: r.deadline || null,
+      event_dates: r.event_dates || null, location: r.location || null, status: $("#pub").checked ? "published" : "pending" };
+    row.expires_on = row.deadline ? addDays(row.deadline, 3) : addDays(editId ? cur.created_at : new Date().toISOString(), 30);
+    if (f) {
+      const path = crypto.randomUUID() + ".jpg";
+      const up = await sb.storage.from("posters").upload(path, await resize(f), { contentType: "image/jpeg" });
+      if (up.error) throw new Error("Poster upload failed: " + up.error.message);
+      row.image_path = path;
+    }
+    const q = editId ? sb.from("posts").update(row).eq("id", editId) : sb.from("posts").insert(row);
+    const { error } = await q;
+    if (error) throw new Error(error.message);
+    if (f && editId && cur.image_path) await sb.storage.from("posters").remove([cur.image_path]);
+    reset(); await load();
+  } catch (e) { err.textContent = e.message; }
+  btn.disabled = false; btn.textContent = "Save post";
+};
+
+$("#list").onclick = async e => {
+  const d = e.target.dataset;
+  if (d.edit) editPost(d.edit);
+  if (d.chan) copy(channelText(posts.find(x => x.id === d.chan), false), e.target);
+  if (d.tog) { const p = posts.find(x => x.id === d.tog); await sb.from("posts").update({ status: p.status === "published" ? "pending" : "published" }).eq("id", p.id); load(); }
+  if (d.del && confirm("Delete this post for good?")) {
+    const p = posts.find(x => x.id === d.del);
+    if (p?.image_path) await sb.storage.from("posters").remove([p.image_path]);
+    await sb.from("posts").delete().eq("id", d.del); load();
+  }
+};
+sb.auth.getSession().then(({ data }) => view(data.session));
+</script>
+</body>
+</html>
