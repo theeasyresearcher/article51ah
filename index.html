@@ -109,8 +109,8 @@ footer .contact{margin:.9rem 0;line-height:1.9;overflow-wrap:anywhere}
   <div class="wrap">
     <input id="q" type="search" placeholder="Search events" aria-label="Search events" enterkeyhint="search">
     <select id="sort" aria-label="Sort events">
+      <option value="updated" selected>Sort: Last updated</option>
       <option value="deadline">Sort: Deadline</option>
-      <option value="updated">Sort: Last updated</option>
     </select>
   </div>
 </div>
@@ -121,7 +121,8 @@ footer .contact{margin:.9rem 0;line-height:1.9;overflow-wrap:anywhere}
       <button class="tab on" type="button" data-tab="open" role="tab">Open</button>
       <button class="tab" type="button" data-tab="archive" role="tab">Archive</button>
     </div>
-    <button class="link" id="selAll" type="button">Select all shown</button>
+    <div><button class="link" id="showAll" type="button" hidden>Show all events</button>
+    <button class="link" id="selAll" type="button">Select all shown</button></div>
   </div>
   <p class="count" id="count" aria-live="polite"></p>
   <div id="grid" class="grid"></div>
@@ -134,7 +135,7 @@ footer .contact{margin:.9rem 0;line-height:1.9;overflow-wrap:anywhere}
     <a href="https://sites.google.com/view/schrodingersstudent/initiatives" target="_blank" rel="noopener">🌐 sites.google.com/view/schrodingersstudent/initiatives</a><br>
     <a href="mailto:theeasyresearcher@gmail.com">✉ theeasyresearcher@gmail.com</a>
   </p>
-  <a href="#admin">Admin</a>
+  <a href="admin.html">Admin</a>
 </footer>
 
 <div class="bar" id="bar" hidden>
@@ -155,7 +156,7 @@ footer .contact{margin:.9rem 0;line-height:1.9;overflow-wrap:anywhere}
 const SB_URL = "https://wknkdfajfnogagdastex.supabase.co";
 const SB_KEY = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6IndrbmtkZmFqZm5vZ2FnZGFzdGV4Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3OTIyNTU4ODUsImV4cCI6MjEwNzgzMTg4NX0.coWowRP8woF1e72Ts80dmVhm3BvibAbD1diK3TuCJsE";
 const MAX_SHARE = 10;
-const TOPICS = ["Nanomaterials","Sensing","Chemistry","Physics","Biology","Materials","Environment","Medicine","Engineering","Other"];
+const TOPICS = ["Material Science","Physics","Chemistry","Nanotechnology","Other"];
 
 const sb = supabase.createClient(SB_URL, SB_KEY);
 const $ = s => document.querySelector(s);
@@ -166,7 +167,7 @@ const today = () => new Date().toISOString().slice(0, 10);
 const addDays = (d, n) => new Date(+new Date(d) + n * 864e5).toISOString().slice(0, 10);
 const fmt = d => new Date(d + "T12:00:00").toLocaleDateString("en-IN", { day: "numeric", month: "short", year: "numeric" });
 
-let posts = [], admin = false, tab = "open";
+let posts = [], admin = false, tab = "open", showAll = false;
 const CHANNEL = "https://whatsapp.com/channel/0029Va5gbXBEawdjYJGqrd38";
 const sel = new Set();
 
@@ -199,8 +200,12 @@ function visible() {
 }
 
 function draw() {
-  const items = visible();
-  $("#count").textContent = items.length ? `${items.length} event${items.length > 1 ? "s" : ""}${tab === "archive" ? " (deadline passed)" : ""}` : "";
+  let items = visible();
+  // Public visitors see only the most recently updated post until they tap "Show all events"
+  const only = !showAll && !admin && tab === "open" && $("#q").value.trim() === "";
+  if (only) items = items.slice().sort((x, y) => new Date(y.updated_at || y.created_at) - new Date(x.updated_at || x.created_at)).slice(0, 1);
+  $("#showAll").hidden = !only;
+  $("#count").textContent = only ? "Latest update" : items.length ? `${items.length} event${items.length > 1 ? "s" : ""}${tab === "archive" ? " (deadline passed)" : ""}` : "";
   $("#grid").innerHTML = items.length ? items.map(p => {
     const d = dueInfo(p);
     return `<article class="tile ${sel.has(p.id) ? "on" : ""}" data-id="${p.id}">
@@ -235,6 +240,7 @@ $("#grid").addEventListener("change", e => {
 $("#grid").addEventListener("click", e => {
   const b = e.target.closest("[data-open]"); if (b) openPost(b.dataset.open);
 });
+$("#showAll").onclick = () => { showAll = true; draw(); };
 $("#clear").onclick = () => { sel.clear(); draw(); updateBar(); };
 
 /* ---------- Share ---------- */
