@@ -8,6 +8,7 @@
 <style>
 :root{--navy:#14304f;--navy-d:#0d2240;--ink:#1c2430;--mute:#5d6877;--line:#d6dce5;--bg:#f3f5f8;--card:#fff;--red:#8c2f39;--gold:#a67c1f;color-scheme:light}
 *{box-sizing:border-box}
+[hidden]{display:none!important}
 html{-webkit-text-size-adjust:100%}
 body{margin:0;background:var(--bg);color:var(--ink);font:16px/1.5 system-ui,-apple-system,"Segoe UI",Roboto,sans-serif}
 body.has-bar{padding-bottom:8rem}
@@ -157,7 +158,7 @@ footer .contact{margin:.9rem 0;line-height:1.9;overflow-wrap:anywhere}
 const SB_URL = "https://wknkdfajfnogagdastex.supabase.co";
 const SB_KEY = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6IndrbmtkZmFqZm5vZ2FnZGFzdGV4Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3OTIyNTU4ODUsImV4cCI6MjEwNzgzMTg4NX0.coWowRP8woF1e72Ts80dmVhm3BvibAbD1diK3TuCJsE";
 const MAX_SHARE = 10;
-const GOATCOUNTER = ""; // your GoatCounter code, e.g. "article51a" (from article51a.goatcounter.com). Empty = no stats.
+const GOATCOUNTER = "article51ah"; // your GoatCounter code, e.g. "article51a" (from article51a.goatcounter.com). Empty = no stats.
 if (GOATCOUNTER) {
   const g = document.createElement("script");
   g.async = true; g.src = "https://gc.zgo.at/count.js";
@@ -376,6 +377,7 @@ function showLogin() {
 async function route() {
   sel.clear(); updateBar();
   const wantAdmin = location.hash === "#admin";
+  scrollTo(0, 0);
   const { data: { session } } = await sb.auth.getSession();
   admin = wantAdmin && !!session;
   $("#adminbar").hidden = !admin;
