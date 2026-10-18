@@ -67,7 +67,7 @@ main{padding:1rem}
 .toolbar{display:flex;justify-content:space-between;align-items:center;gap:.5rem;margin-bottom:.4rem}
 .tabs{display:flex}
 .tab{border:1px solid var(--navy);background:#fff;color:var(--navy);padding:.4rem 1rem;font-weight:600;cursor:pointer}
-.tab:first-child{border-radius:4px 0 0 4px}.tab:last-child{border-radius:0 4px 4px 0;border-left:0}
+.tab:first-child{border-radius:4px 0 0 4px}.tab:last-child{border-radius:0 4px 4px 0}.tab+.tab{border-left:0}
 .tab.on{background:var(--navy);color:#fff}
 .link{background:none;border:0;color:var(--navy);text-decoration:underline;cursor:pointer;padding:.4rem}
 
@@ -118,11 +118,11 @@ footer .contact{margin:.9rem 0;line-height:1.9;overflow-wrap:anywhere}
 <main class="wrap">
   <div class="toolbar">
     <div class="tabs" role="tablist">
-      <button class="tab on" type="button" data-tab="open" role="tab">Open</button>
+      <button class="tab on" type="button" data-tab="all" role="tab">All</button>
+      <button class="tab" type="button" data-tab="open" role="tab">Open</button>
       <button class="tab" type="button" data-tab="archive" role="tab">Archive</button>
     </div>
-    <div><button class="link" id="showAll" type="button" hidden>Show all events</button>
-    <button class="link" id="selAll" type="button">Select all shown</button></div>
+    <button class="link" id="selAll" type="button">Select all shown</button>
   </div>
   <p class="count" id="count" aria-live="polite"></p>
   <div id="grid" class="grid"></div>
@@ -167,7 +167,7 @@ const today = () => new Date().toISOString().slice(0, 10);
 const addDays = (d, n) => new Date(+new Date(d) + n * 864e5).toISOString().slice(0, 10);
 const fmt = d => new Date(d + "T12:00:00").toLocaleDateString("en-IN", { day: "numeric", month: "short", year: "numeric" });
 
-let posts = [], admin = false, tab = "open", showAll = false;
+let posts = [], admin = false, tab = "all";
 const CHANNEL = "https://whatsapp.com/channel/0029Va5gbXBEawdjYJGqrd38";
 const sel = new Set();
 
@@ -188,7 +188,7 @@ function dueInfo(p) {
 function visible() {
   const q = $("#q").value.trim().toLowerCase();
   const t0 = today();
-  const a = posts.filter(p => tab === "open" ? (!p.deadline || p.deadline >= t0) : (p.deadline && p.deadline < t0))
+  const a = posts.filter(p => tab === "all" ? true : tab === "open" ? (!p.deadline || p.deadline >= t0) : (p.deadline && p.deadline < t0))
     .filter(p => !q || [p.title, p.caption, p.location, p.event_dates, p.topic].join(" ").toLowerCase().includes(q));
   if ($("#sort").value === "deadline") {
     const t = today(), rank = p => !p.deadline ? 1 : p.deadline >= t ? 0 : 2;
@@ -201,11 +201,7 @@ function visible() {
 
 function draw() {
   let items = visible();
-  // Public visitors see only the most recently updated post until they tap "Show all events"
-  const only = !showAll && !admin && tab === "open" && $("#q").value.trim() === "";
-  if (only) items = items.slice().sort((x, y) => new Date(y.updated_at || y.created_at) - new Date(x.updated_at || x.created_at)).slice(0, 1);
-  $("#showAll").hidden = !only;
-  $("#count").textContent = only ? "Latest update" : items.length ? `${items.length} event${items.length > 1 ? "s" : ""}${tab === "archive" ? " (deadline passed)" : ""}` : "";
+  $("#count").textContent = items.length ? `${items.length} event${items.length > 1 ? "s" : ""}${tab === "archive" ? " (deadline passed)" : ""}` : "";
   $("#grid").innerHTML = items.length ? items.map(p => {
     const d = dueInfo(p);
     return `<article class="tile ${sel.has(p.id) ? "on" : ""}" data-id="${p.id}">
@@ -240,7 +236,6 @@ $("#grid").addEventListener("change", e => {
 $("#grid").addEventListener("click", e => {
   const b = e.target.closest("[data-open]"); if (b) openPost(b.dataset.open);
 });
-$("#showAll").onclick = () => { showAll = true; draw(); };
 $("#clear").onclick = () => { sel.clear(); draw(); updateBar(); };
 
 /* ---------- Share ---------- */
