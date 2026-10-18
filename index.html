@@ -108,7 +108,7 @@ footer .contact{margin:.9rem 0;line-height:1.9;overflow-wrap:anywhere}
 <div class="controls" id="controls">
   <div class="wrap">
     <input id="q" type="search" placeholder="Search events" aria-label="Search events" enterkeyhint="search">
-    <select id="sort" aria-label="Sort events">
+    <select id="sort" aria-label="Sort events" autocomplete="off">
       <option value="updated" selected>Sort: Last updated</option>
       <option value="deadline">Sort: Deadline</option>
     </select>
@@ -374,6 +374,7 @@ async function route() {
   await load();
 }
 
+$("#sort").value = "updated"; // always open on Last updated, ignore browser-restored choice
 $("#q").oninput = draw;
 $("#sort").onchange = draw;
 $("#signout").onclick = async () => { await sb.auth.signOut(); location.hash = ""; route(); };
