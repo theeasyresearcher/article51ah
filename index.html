@@ -10,7 +10,7 @@
 *{box-sizing:border-box}
 html{-webkit-text-size-adjust:100%}
 body{margin:0;background:var(--bg);color:var(--ink);font:16px/1.5 system-ui,-apple-system,"Segoe UI",Roboto,sans-serif}
-body.has-bar{padding-bottom:5.5rem}
+body.has-bar{padding-bottom:8rem}
 a{color:var(--navy)}
 button,input,select,textarea{font:inherit;color:inherit}
 :focus-visible{outline:3px solid var(--gold);outline-offset:2px}
@@ -58,10 +58,18 @@ main{padding:1rem}
 .empty{text-align:center;color:var(--mute);padding:3rem 1rem}
 
 .bar{position:fixed;left:0;right:0;bottom:0;z-index:30;background:var(--navy-d);color:#fff;padding:.7rem 1rem calc(.7rem + env(safe-area-inset-bottom,0px));box-shadow:0 -2px 8px rgba(0,0,0,.25)}
-.bar .wrap{display:flex;align-items:center;gap:.6rem}
-.bar b{margin-right:auto}
-.bar .clear{background:none;border:0;color:#d3deec;text-decoration:underline;cursor:pointer;padding:.4rem}
+.bar .top{display:flex;justify-content:space-between;align-items:center;margin-bottom:.5rem}
+.bar .acts{display:flex;gap:.5rem}
+.bar .acts .btn{flex:1}
+.bar .clear{background:none;border:0;color:#d3deec;text-decoration:underline;cursor:pointer;padding:.3rem}
 .bar .btn{background:#25a244;border-color:#25a244;color:#fff}
+.bar .btn.copy{background:transparent;border-color:#8fa3bd}
+.toolbar{display:flex;justify-content:space-between;align-items:center;gap:.5rem;margin-bottom:.4rem}
+.tabs{display:flex}
+.tab{border:1px solid var(--navy);background:#fff;color:var(--navy);padding:.4rem 1rem;font-weight:600;cursor:pointer}
+.tab:first-child{border-radius:4px 0 0 4px}.tab:last-child{border-radius:0 4px 4px 0;border-left:0}
+.tab.on{background:var(--navy);color:#fff}
+.link{background:none;border:0;color:var(--navy);text-decoration:underline;cursor:pointer;padding:.4rem}
 
 dialog{border:0;padding:0;border-radius:6px;width:min(640px,100%);max-height:92dvh;overflow:auto;color:var(--ink)}
 dialog::backdrop{background:rgba(8,18,34,.65)}
@@ -76,7 +84,7 @@ dialog::backdrop{background:rgba(8,18,34,.65)}
 .edit label{display:block;font-size:.85rem;color:var(--mute);margin:.7rem 0 .2rem}
 .msg{color:var(--mute);font-size:.9rem}
 
-.toast{position:fixed;left:50%;bottom:6rem;transform:translateX(-50%);background:#1c2430;color:#fff;padding:.55rem 1rem;border-radius:4px;font-size:.9rem;z-index:50;max-width:90%;text-align:center}
+.toast{position:fixed;left:50%;bottom:8.5rem;transform:translateX(-50%);background:#1c2430;color:#fff;padding:.55rem 1rem;border-radius:4px;font-size:.9rem;z-index:50;max-width:90%;text-align:center}
 .login{max-width:380px;margin:2rem auto;background:#fff;border:1px solid var(--line);border-radius:4px;padding:1.25rem}
 .login label{display:block;font-size:.85rem;color:var(--mute);margin:.7rem 0 .2rem}
 footer{max-width:1100px;margin:0 auto;padding:1.5rem 1rem 2.5rem;color:var(--mute);font-size:.84rem;text-align:center}
@@ -108,6 +116,13 @@ footer .contact{margin:.9rem 0;line-height:1.9;overflow-wrap:anywhere}
 </div>
 
 <main class="wrap">
+  <div class="toolbar">
+    <div class="tabs" role="tablist">
+      <button class="tab on" type="button" data-tab="open" role="tab">Open</button>
+      <button class="tab" type="button" data-tab="archive" role="tab">Archive</button>
+    </div>
+    <button class="link" id="selAll" type="button">Select all shown</button>
+  </div>
   <p class="count" id="count" aria-live="polite"></p>
   <div id="grid" class="grid"></div>
   <div id="login" hidden></div>
@@ -124,9 +139,11 @@ footer .contact{margin:.9rem 0;line-height:1.9;overflow-wrap:anywhere}
 
 <div class="bar" id="bar" hidden>
   <div class="wrap">
-    <b id="nsel">0 selected</b>
-    <button class="clear" id="clear" type="button">Clear</button>
-    <button class="btn" id="shareSel" type="button">Share on WhatsApp</button>
+    <div class="top"><b id="nsel">0 selected</b><button class="clear" id="clear" type="button">Clear</button></div>
+    <div class="acts">
+      <button class="btn" id="shareSel" type="button">Share on WhatsApp</button>
+      <button class="btn copy" id="copySel" type="button">Copy digest</button>
+    </div>
   </div>
 </div>
 
@@ -149,7 +166,8 @@ const today = () => new Date().toISOString().slice(0, 10);
 const addDays = (d, n) => new Date(+new Date(d) + n * 864e5).toISOString().slice(0, 10);
 const fmt = d => new Date(d + "T12:00:00").toLocaleDateString("en-IN", { day: "numeric", month: "short", year: "numeric" });
 
-let posts = [], admin = false;
+let posts = [], admin = false, tab = "open";
+const CHANNEL = "https://whatsapp.com/channel/0029Va5gbXBEawdjYJGqrd38";
 const sel = new Set();
 
 function toast(msg) {
@@ -168,7 +186,9 @@ function dueInfo(p) {
 
 function visible() {
   const q = $("#q").value.trim().toLowerCase();
-  const a = posts.filter(p => !q || [p.title, p.caption, p.location, p.event_dates, p.topic].join(" ").toLowerCase().includes(q));
+  const t0 = today();
+  const a = posts.filter(p => tab === "open" ? (!p.deadline || p.deadline >= t0) : (p.deadline && p.deadline < t0))
+    .filter(p => !q || [p.title, p.caption, p.location, p.event_dates, p.topic].join(" ").toLowerCase().includes(q));
   if ($("#sort").value === "deadline") {
     const t = today(), rank = p => !p.deadline ? 1 : p.deadline >= t ? 0 : 2;
     a.sort((x, y) => rank(x) - rank(y) || (x.deadline || "").localeCompare(y.deadline || ""));
@@ -180,7 +200,7 @@ function visible() {
 
 function draw() {
   const items = visible();
-  $("#count").textContent = items.length ? `${items.length} event${items.length > 1 ? "s" : ""}` : "";
+  $("#count").textContent = items.length ? `${items.length} event${items.length > 1 ? "s" : ""}${tab === "archive" ? " (deadline passed)" : ""}` : "";
   $("#grid").innerHTML = items.length ? items.map(p => {
     const d = dueInfo(p);
     return `<article class="tile ${sel.has(p.id) ? "on" : ""}" data-id="${p.id}">
@@ -193,7 +213,7 @@ function draw() {
       <label class="sel" title="Select to share"><input type="checkbox" data-sel="${p.id}" aria-label="Select ${esc(p.title)}" ${sel.has(p.id) ? "checked" : ""}></label>
       ${p.status !== "published" ? `<span class="badge">Pending</span>` : ""}
     </article>`;
-  }).join("") : `<div class="empty" style="grid-column:1/-1">No events found. Try a different search.</div>`;
+  }).join("") : `<div class="empty" style="grid-column:1/-1">${tab === "archive" ? "Nothing in the archive." : "No events found. Try a different search."}</div>`;
 }
 
 function updateBar() {
@@ -221,24 +241,39 @@ $("#clear").onclick = () => { sel.clear(); draw(); updateBar(); };
 function shareText(list) {
   const site = location.origin + location.pathname;
   const body = list.map((p, i) => {
-    const lines = [`${i + 1}. *${p.title}*`];
-    const when = [p.event_dates, p.location].filter(Boolean).join(" | ");
-    if (when) lines.push(when);
-    if (p.deadline) lines.push(`Deadline: ${fmt(p.deadline)}`);
-    if (safeUrl(p.link)) lines.push(p.link);
-    return lines.join("\n");
+    const l = [`${i + 1}. *${p.title}*`];
+    if (p.deadline) l.push(`Deadline: ${fmt(p.deadline)}`);
+    if (safeUrl(p.link)) l.push(p.link);
+    return l.join("\n");
   }).join("\n\n");
-  return `*Article 51A(h)*\n\n${body}\n\nMore events: ${site}`;
+  return `*Article 51A(h): Scientific events*\n\n${body}\n\nAll posts: ${site}\nFollow the channel: ${CHANNEL}`;
+}
+function selectedList() {
+  const order = visible();
+  return [...order.filter(p => sel.has(p.id)), ...posts.filter(p => sel.has(p.id) && !order.includes(p))].slice(0, MAX_SHARE);
+}
+async function copyText(t) {
+  try { await navigator.clipboard.writeText(t); }
+  catch { const x = document.createElement("textarea"); x.value = t; document.body.appendChild(x); x.select(); document.execCommand("copy"); x.remove(); }
 }
 function openWhatsApp(list) {
   const a = document.createElement("a");
   a.href = "https://wa.me/?text=" + encodeURIComponent(shareText(list));
   a.target = "_blank"; a.rel = "noopener"; a.click();
 }
-$("#shareSel").onclick = () => {
-  const list = posts.filter(p => sel.has(p.id)).slice(0, MAX_SHARE);
-  if (list.length) openWhatsApp(list);
+$("#shareSel").onclick = () => { const l = selectedList(); if (l.length) openWhatsApp(l); };
+$("#copySel").onclick = async () => { const l = selectedList(); if (!l.length) return; await copyText(shareText(l)); toast("Digest copied"); };
+$("#selAll").onclick = () => {
+  const items = visible(); sel.clear();
+  items.slice(0, MAX_SHARE).forEach(p => sel.add(p.id));
+  if (items.length > MAX_SHARE) toast(`Selected the first ${MAX_SHARE}`);
+  draw(); updateBar();
 };
+document.querySelectorAll(".tab").forEach(b => b.onclick = () => {
+  tab = b.dataset.tab; sel.clear();
+  document.querySelectorAll(".tab").forEach(x => x.classList.toggle("on", x === b));
+  draw(); updateBar();
+});
 
 /* ---------- Detail dialog ---------- */
 const dlg = $("#dlg");
@@ -314,7 +349,7 @@ async function load() {
 }
 
 function showLogin() {
-  $("#login").hidden = false; $("#grid").hidden = true; $("#controls").hidden = true; $("#count").textContent = "";
+  $("#login").hidden = false; $("#grid").hidden = true; $("#controls").hidden = true; document.querySelector(".toolbar").hidden = true; $("#count").textContent = "";
   $("#login").innerHTML = `<form class="login" id="lf"><h2 class="serif" style="margin:0 0 .5rem">Admin sign in</h2>
     <label>Email</label><input name="e" type="email" required autocomplete="username">
     <label>Password</label><input name="p" type="password" required autocomplete="current-password">
@@ -334,7 +369,7 @@ async function route() {
   admin = wantAdmin && !!session;
   $("#adminbar").hidden = !admin;
   if (wantAdmin && !session) { showLogin(); return; }
-  $("#login").hidden = true; $("#grid").hidden = false; $("#controls").hidden = false;
+  $("#login").hidden = true; $("#grid").hidden = false; $("#controls").hidden = false; document.querySelector(".toolbar").hidden = false;
   await load();
 }
 
