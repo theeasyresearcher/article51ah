@@ -259,7 +259,7 @@ async function load() {
   if (error) { $("#list").innerHTML = `<p class="empty">${esc(error.message)}</p>`; return; }
   posts = data;
   $("#list").innerHTML = posts.length ? posts.map(p => `
-    <article class="card"><img src="${imgUrl(p.image_path)}" alt="" loading="lazy">
+    <article class="card">${p.image_path ? `<img src="${imgUrl(p.image_path)}" alt="" loading="lazy">` : ""}
       <div class="body"><span class="b ${p.status === "published" ? "" : "pend"}">${p.status === "published" ? "Published" : "Pending"}</span>
         ${p.deadline ? `<span class="b">${fmt(p.deadline)}</span>` : ""}
         <h2 class="serif">${esc(p.title)}</h2>

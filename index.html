@@ -47,6 +47,7 @@ main{padding:1rem}
 .open{display:block;width:100%;padding:0;border:0;background:none;text-align:left;cursor:pointer}
 .thumb{aspect-ratio:4/5;background:#e3e8ef}
 .thumb img{width:100%;height:100%;object-fit:cover;display:block}
+.noimg{width:100%;height:100%;display:grid;place-items:center;text-align:center;padding:.8rem;background:#e3e8ef;color:var(--mute);font-size:.8rem}
 .info{padding:.55rem .65rem .7rem}
 .dl{font-size:.78rem;font-weight:700;color:var(--navy)}
 .dl.soon,.dl.past{color:var(--red)}
@@ -156,6 +157,13 @@ footer .contact{margin:.9rem 0;line-height:1.9;overflow-wrap:anywhere}
 const SB_URL = "https://wknkdfajfnogagdastex.supabase.co";
 const SB_KEY = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6IndrbmtkZmFqZm5vZ2FnZGFzdGV4Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3OTIyNTU4ODUsImV4cCI6MjEwNzgzMTg4NX0.coWowRP8woF1e72Ts80dmVhm3BvibAbD1diK3TuCJsE";
 const MAX_SHARE = 10;
+const GOATCOUNTER = ""; // your GoatCounter code, e.g. "article51a" (from article51a.goatcounter.com). Empty = no stats.
+if (GOATCOUNTER) {
+  const g = document.createElement("script");
+  g.async = true; g.src = "https://gc.zgo.at/count.js";
+  g.dataset.goatcounter = `https://${GOATCOUNTER}.goatcounter.com/count`;
+  document.head.appendChild(g);
+}
 const TOPICS = ["Material Science","Physics","Chemistry","Nanotechnology","Other"];
 
 const sb = supabase.createClient(SB_URL, SB_KEY);
@@ -167,7 +175,7 @@ const today = () => new Date().toISOString().slice(0, 10);
 const addDays = (d, n) => new Date(+new Date(d) + n * 864e5).toISOString().slice(0, 10);
 const fmt = d => new Date(d + "T12:00:00").toLocaleDateString("en-IN", { day: "numeric", month: "short", year: "numeric" });
 
-let posts = [], admin = false, tab = "all";
+let posts = [], admin = false, tab = "all", shown = 40;
 const CHANNEL = "https://whatsapp.com/channel/0029Va5gbXBEawdjYJGqrd38";
 const sel = new Set();
 
@@ -202,11 +210,11 @@ function visible() {
 function draw() {
   let items = visible();
   $("#count").textContent = items.length ? `${items.length} event${items.length > 1 ? "s" : ""}${tab === "archive" ? " (deadline passed)" : ""}` : "";
-  $("#grid").innerHTML = items.length ? items.map(p => {
+  $("#grid").innerHTML = items.length ? items.slice(0, shown).map(p => {
     const d = dueInfo(p);
     return `<article class="tile ${sel.has(p.id) ? "on" : ""}" data-id="${p.id}">
       <button class="open" type="button" data-open="${p.id}" aria-label="Open ${esc(p.title)}">
-        <div class="thumb"><img src="${imgUrl(p)}" alt="" loading="lazy"></div>
+        <div class="thumb">${p.image_path ? `<img src="${imgUrl(p)}" alt="" loading="lazy">` : `<div class="noimg">Poster removed after the deadline</div>`}</div>
         <div class="info"><div class="dl ${d.cls}">${d.text}</div>
           <h2 class="t serif">${esc(p.title)}</h2>
           <p class="m">${esc([p.event_dates, p.location].filter(Boolean).join(" | "))}</p></div>
@@ -214,7 +222,8 @@ function draw() {
       <label class="sel" title="Select to share"><input type="checkbox" data-sel="${p.id}" aria-label="Select ${esc(p.title)}" ${sel.has(p.id) ? "checked" : ""}></label>
       ${p.status !== "published" ? `<span class="badge">Pending</span>` : ""}
     </article>`;
-  }).join("") : `<div class="empty" style="grid-column:1/-1">${tab === "archive" ? "Nothing in the archive." : "No events found. Try a different search."}</div>`;
+  }).join("") + (items.length > shown ? `<div style="grid-column:1/-1;text-align:center;padding:.5rem"><button class="btn alt" type="button" data-more>Show more (${items.length - shown} left)</button></div>` : "")
+  : `<div class="empty" style="grid-column:1/-1">${tab === "archive" ? "Nothing in the archive." : "No events found. Try a different search."}</div>`;
 }
 
 function updateBar() {
@@ -234,6 +243,7 @@ $("#grid").addEventListener("change", e => {
   updateBar();
 });
 $("#grid").addEventListener("click", e => {
+  if (e.target.closest("[data-more]")) { shown += 40; draw(); return; }
   const b = e.target.closest("[data-open]"); if (b) openPost(b.dataset.open);
 });
 $("#clear").onclick = () => { sel.clear(); draw(); updateBar(); };
@@ -271,7 +281,7 @@ $("#selAll").onclick = () => {
   draw(); updateBar();
 };
 document.querySelectorAll(".tab").forEach(b => b.onclick = () => {
-  tab = b.dataset.tab; sel.clear();
+  tab = b.dataset.tab; sel.clear(); shown = 40;
   document.querySelectorAll(".tab").forEach(x => x.classList.toggle("on", x === b));
   draw(); updateBar();
 });
@@ -285,7 +295,7 @@ function openPost(id) {
   const d = dueInfo(p), link = safeUrl(p.link);
   dlg.innerHTML = `
     <div class="dhead"><span>Event details</span><button class="btn alt sm" type="button" id="dclose">Close</button></div>
-    <img class="dposter" src="${imgUrl(p)}" alt="Poster for ${esc(p.title)}">
+    ${p.image_path ? `<img class="dposter" src="${imgUrl(p)}" alt="Poster for ${esc(p.title)}">` : ""}
     <div class="dbody">
       <div class="dl ${d.cls}">${d.text}${p.deadline && !d.text.includes(fmt(p.deadline)) ? " · " + fmt(p.deadline) : ""}</div>
       <h2 class="serif">${esc(p.title)}</h2>
@@ -341,7 +351,7 @@ function editPost(p) {
 /* ---------- Data and routing ---------- */
 async function load() {
   let qy = sb.from("posts").select("*");
-  qy = admin ? qy.neq("status", "rejected") : qy.eq("status", "published").gte("expires_on", today());
+  qy = admin ? qy.neq("status", "rejected") : qy.eq("status", "published");
   const { data, error } = await qy;
   if (error) { $("#grid").innerHTML = `<div class="empty" style="grid-column:1/-1">Could not load events. Refresh to try again.</div>`; return; }
   posts = data;
@@ -375,8 +385,8 @@ async function route() {
 }
 
 $("#sort").value = "updated"; // always open on Last updated, ignore browser-restored choice
-$("#q").oninput = draw;
-$("#sort").onchange = draw;
+$("#q").oninput = () => { shown = 40; draw(); };
+$("#sort").onchange = () => { shown = 40; draw(); };
 $("#signout").onclick = async () => { await sb.auth.signOut(); location.hash = ""; route(); };
 addEventListener("hashchange", route);
 route();
